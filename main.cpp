@@ -10,31 +10,29 @@ constexpr float GRAVITY_ACC { 98.1f };
 
 struct Square
 {
-    int width       { 0 };
-    int height      { 0 };
-    int posX        { 0 };
-    int posY        { 0 };
-    float velocity  { 0 };
-    Color color     { WHITE };
+    int width           { 0 };
+    int height          { 0 };
+    Vector2 position    { 0.0f, 0.0f };
+    float velocity      { 0 };
+    Color color         { WHITE };
 };
 
 struct Circle
 {
-    float radius    { 0.f };
-    int posX        { 0 };
-    int posY        { 0 };
-    int speed       { 0 };
-    Color color     { WHITE };
+    float radius        { 0.f };
+    Vector2 position    { 0.0f, 0.0f };
+    int speed           { 0 };
+    Color color         { WHITE };
 };
 
-void drawFrame(const Square &axe, const Circle &player);
 void updateBodies(Square &axe, Circle &player);
-bool haveCollided(Square axe, Circle player);
+bool haveCollided(const Square &axe, const Circle &player);
+void drawBodies(const Square &axe, const Circle &player);
 
 int main(int argc, char **argv)
 {
-    Square axe(50, 50, (SCREEN_WIDTH/2) - 25, 0, 0.f, RED);
-    Circle player(25, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 200, DARKBLUE);
+    Square axe(50, 50, Vector2(SCREEN_WIDTH/2.f - 25, 0), 0.f, RED);
+    Circle player(25, Vector2(SCREEN_WIDTH/2.f, SCREEN_HEIGHT/2.f), 200, DARKBLUE);
     bool gameOver { false };
 
     SetConfigFlags(FLAG_VSYNC_HINT);
@@ -46,79 +44,54 @@ int main(int argc, char **argv)
         if (!gameOver)
         {
             updateBodies(axe, player);
-            if (haveCollided(axe, player))
-            {
-                gameOver = true;
-            }
+            if (haveCollided(axe, player)) { gameOver = true; }
         }
 
         BeginDrawing();
-        if (!gameOver)
-        {
-            drawFrame(axe, player);
-        }
-        else
-        {
             ClearBackground(RAYWHITE);
-            DrawText("Game Over!", SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 10, 20, RED);
-        }
+            if (!gameOver) { drawBodies(axe, player); }
+            else { DrawText("Game Over!", SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 10, 20, RED); }
         EndDrawing();
     }
 
     return 0;
 }
 
+// Updates player vertical movement
 void updatePlayerPosY(Circle& player, const float deltaTime)
 {
-    // Circle vertical movement Logic
     int yAxis { 0 };
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) { yAxis = -1; }
     else if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) { yAxis = 1; }
 
-    player.posY += deltaTime * player.speed * yAxis;
-    player.posY = Clamp(player.posY, player.radius, SCREEN_HEIGHT - player.radius);
+    player.position.y += deltaTime * player.speed * yAxis;
+    player.position.y = Clamp(player.position.y, player.radius, SCREEN_HEIGHT - player.radius);
 }
 
+// Updates player horizontal movement
 void updatePlayerPosX(Circle& player, const float deltaTime)
 {
-    //Circle horizontal movement logic
     int xAxis { 0 };
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) { xAxis = -1; }
     else if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) { xAxis = 1; }
 
-    player.posX += player.speed * deltaTime * xAxis;
-    player.posX = Clamp(player.posX, player.radius, SCREEN_WIDTH - player.radius);
+    player.position.x += player.speed * deltaTime * xAxis;
+    player.position.x = Clamp(player.position.x, player.radius, SCREEN_WIDTH - player.radius);
 }
 
+// Updates the axe's vertical movement
 void updateAxePosY(Square& axe, const float deltaTime)
 {
-    //  Axe movement Logic
     axe.velocity += GRAVITY_ACC * deltaTime;
-    axe.posY += axe.velocity * deltaTime;
+    axe.position.y += axe.velocity * deltaTime;
 
-    if (axe.posY > SCREEN_HEIGHT - 50 || axe.posY < 0)
+    if (axe.position.y> SCREEN_HEIGHT - 50 || axe.position.y< 0)
     {
         axe.velocity *= -1;
     }
 }
 
-bool haveCollided(Square axe, Circle player)
-{
-    const int bAxeY {axe.posY + axe.height};
-    const int uAxeY {axe.posY};
-    const int lAxeX {axe.posX};
-    const int rAxeX {axe.posX + axe.width};
-
-    const int uPlayerY {static_cast<int>(player.posY - player.radius)};
-    const int bPlayerY {static_cast<int>(player.posY + player.radius)};
-    const int rPlayerX {static_cast<int>(player.posX + player.radius)};
-    const int lPlayerX {static_cast<int>(player.posX - player.radius)};
-
-    const bool collision {bAxeY >= uPlayerY && uAxeY <= bPlayerY && lAxeX <= rPlayerX && rAxeX >= lPlayerX};
-
-    return collision;
-}
-
+// Method in charge of updating the axe and the player's positions
 void updateBodies(Square& axe, Circle& player)
 {
     const float deltaTime { GetFrameTime() };
@@ -127,9 +100,26 @@ void updateBodies(Square& axe, Circle& player)
     updateAxePosY(axe, deltaTime);
 }
 
-void drawFrame(const Square &axe, const Circle &player)
+// Checks if the axe and player have collided
+bool haveCollided(const Square &axe, const Circle &player)
 {
-    ClearBackground(RAYWHITE);
-    DrawCircle(player.posX, player.posY, player.radius, player.color);
-    DrawRectangle(axe.posX, axe.posY, axe.width, axe.height, axe.color);
+    const float bAxeY {axe.position.y + axe.height};
+    const float uAxeY {axe.position.y};
+    const float lAxeX {axe.position.x};
+    const float rAxeX {axe.position.x + axe.width};
+
+    const float uPlayerY {player.position.y- player.radius};
+    const float bPlayerY {player.position.y+ player.radius};
+    const float rPlayerX {player.position.x + player.radius};
+    const float lPlayerX {player.position.x - player.radius};
+
+    const bool collision {bAxeY >= uPlayerY && uAxeY <= bPlayerY && lAxeX <= rPlayerX && rAxeX >= lPlayerX};
+
+    return collision;
+}
+
+void drawBodies(const Square &axe, const Circle &player)
+{
+    DrawCircle(player.position.x, player.position.y, player.radius, player.color);
+    DrawRectangle(axe.position.x, axe.position.y, axe.width, axe.height, axe.color);
 }
