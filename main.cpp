@@ -7,13 +7,14 @@
 constexpr int SCREEN_WIDTH { 800 };
 constexpr int SCREEN_HEIGHT { 450 };
 constexpr float GRAVITY_ACC { 98.1f };
+bool gameOver { false };
 
 struct Square
 {
     int width           { 0 };
     int height          { 0 };
     Vector2 position    { 0.0f, 0.0f };
-    float velocity      { 0 };
+    float velocity      { 0.f };
     Color color         { WHITE };
 };
 
@@ -21,11 +22,13 @@ struct Circle
 {
     float radius        { 0.f };
     Vector2 position    { 0.0f, 0.0f };
-    int speed           { 0 };
+    float speed         { 0.f };
     Color color         { WHITE };
 };
 
 void updateBodies(Square &axe, Circle &player);
+void resetBodies(Square &axe, Circle &player);
+void restartGame(Square &axe, Circle &player);
 bool haveCollided(const Square &axe, const Circle &player);
 void drawBodies(const Square &axe, const Circle &player);
 
@@ -33,7 +36,6 @@ int main(int argc, char **argv)
 {
     Square axe(50, 50, Vector2(SCREEN_WIDTH/2.f - 25, 0), 0.f, RED);
     Circle player(25, Vector2(SCREEN_WIDTH/2.f, SCREEN_HEIGHT/2.f), 200, DARKBLUE);
-    bool gameOver { false };
 
     SetConfigFlags(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -46,6 +48,8 @@ int main(int argc, char **argv)
             updateBodies(axe, player);
             if (haveCollided(axe, player)) { gameOver = true; }
         }
+
+        if (IsKeyDown(KEY_R)) { restartGame(axe, player); }
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
@@ -119,3 +123,17 @@ void drawBodies(const Square &axe, const Circle &player)
     DrawCircle(player.position.x, player.position.y, player.radius, player.color);
     DrawRectangle(axe.position.x, axe.position.y, axe.width, axe.height, axe.color);
 }
+
+void restartGame(Square &axe, Circle &player) {
+    resetBodies(axe, player);
+    gameOver = false;
+}
+
+void resetBodies(Square &axe, Circle &player) {
+    axe.position.x = SCREEN_WIDTH/2.f - axe.width/2.f;
+    axe.position.y = 0.f;
+    axe.velocity = 0.f;
+
+    player.position.x = SCREEN_WIDTH/2.f;
+    player.position.y = SCREEN_HEIGHT/2.f;
+};
