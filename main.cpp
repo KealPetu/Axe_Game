@@ -4,10 +4,10 @@
 #include "raylib.h"
 #include "raymath.h"
 
-constexpr int SCREEN_WIDTH { 800 };
+constexpr int SCREEN_WIDTH  { 800 };
 constexpr int SCREEN_HEIGHT { 450 };
 constexpr float GRAVITY_ACC { 98.1f };
-bool gameOver { false };
+bool gameOver               { false };
 
 struct Square
 {
@@ -53,7 +53,10 @@ int main(int argc, char **argv)
         BeginDrawing();
             ClearBackground(RAYWHITE);
             if (!gameOver) { drawBodies(axe, player); }
-            else { DrawText("Game Over!", SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 10, 20, RED); }
+            else {
+                DrawText("Game Over!", SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 10, 20, RED);
+                DrawText("Press R to try again!", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 10, 20, DARKBLUE);
+            }
         EndDrawing();
     }
     CloseWindow();
