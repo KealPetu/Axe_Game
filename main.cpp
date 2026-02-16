@@ -37,8 +37,7 @@ int main(int argc, char **argv)
     Square axe(50, 50, Vector2(SCREEN_WIDTH/2.f - 25, 0), 0.f, RED);
     Circle player(25, Vector2(SCREEN_WIDTH/2.f, SCREEN_HEIGHT/2.f), 200, DARKBLUE);
 
-    SetConfigFlags(FLAG_VSYNC_HINT);
-    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, *argv);
 
     while (!WindowShouldClose())
@@ -57,7 +56,7 @@ int main(int argc, char **argv)
             else { DrawText("Game Over!", SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 10, 20, RED); }
         EndDrawing();
     }
-
+    CloseWindow();
     return 0;
 }
 
@@ -89,8 +88,14 @@ void updateAxePosY(Square& axe, const float deltaTime)
     axe.velocity += GRAVITY_ACC * deltaTime;
     axe.position.y += axe.velocity * deltaTime;
 
-    if (axe.position.y> SCREEN_HEIGHT - 50 || axe.position.y< 0)
+    if (axe.position.y > SCREEN_HEIGHT - 50)
     {
+        axe.position.y = SCREEN_HEIGHT - 50;
+        axe.velocity *= -1;
+    }
+    else if (axe.position.y < 0)
+    {
+        axe.position.y = 0;
         axe.velocity *= -1;
     }
 }
