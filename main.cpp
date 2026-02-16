@@ -103,19 +103,15 @@ void updateBodies(Square& axe, Circle& player)
 // Checks if the axe and player have collided
 bool haveCollided(const Square &axe, const Circle &player)
 {
-    const float bAxeY {axe.position.y + axe.height};
-    const float uAxeY {axe.position.y};
-    const float lAxeX {axe.position.x};
-    const float rAxeX {axe.position.x + axe.width};
-
-    const float uPlayerY {player.position.y- player.radius};
-    const float bPlayerY {player.position.y+ player.radius};
-    const float rPlayerX {player.position.x + player.radius};
-    const float lPlayerX {player.position.x - player.radius};
-
-    const bool collision {bAxeY >= uPlayerY && uAxeY <= bPlayerY && lAxeX <= rPlayerX && rAxeX >= lPlayerX};
-
-    return collision;
+    return CheckCollisionCircleRec(
+        player.position,
+        player.radius,
+        Rectangle{
+            axe.position.x,
+            axe.position.y,
+            static_cast<float>(axe.width),
+            static_cast<float>(axe.height)
+        });
 }
 
 void drawBodies(const Square &axe, const Circle &player)
